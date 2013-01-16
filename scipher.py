@@ -1,4 +1,4 @@
-mport sys
+import sys
 
 MSGS = ( ---  11 secret messages  --- )
 
