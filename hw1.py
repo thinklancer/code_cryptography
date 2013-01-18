@@ -47,6 +47,7 @@ ciphermsgs = ['315c4eeaa8b5f8aaf9174145bf43e1784b8fa00dc71d885a804e5ee9fa40b1634
 
 target = '32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904'
 
+ciphereds = [i.decode('hex') for i in ciphermsgs]
 
 import operator
 
@@ -78,7 +79,7 @@ def analyze(ciphereds):
 
 
 # try to find space in each original msgs
-def findspace(ciphereds,target):
+def findspace(target):
     fulltext = {}
     for i in range(len(ciphereds)):
         if i != target:
@@ -90,8 +91,21 @@ def findspace(ciphereds,target):
                 show += fulltext[j][i]+" -- "
         print "@",i,":::",show
 
+def convertline(linen,char):
+    extend = char*11
+    line = [ciphereds[i][linen] for i in range(11)]
+    print strxor(line,extend)
+
+def getkey(par,line,char):
+    return strxor(ciphereds[par][line],char)
+
+def converlinebyguess(par,line,char):
+    key = getkey(par,line,char)
+    convertline(line,key)
+
+
 # start of the main code
 if __name__ == "__main__":
-    ciphereds = [i.decode('hex') for i in ciphermsgs]
+
     analyze(ciphereds)
     
