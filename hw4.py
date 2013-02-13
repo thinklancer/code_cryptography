@@ -20,6 +20,7 @@ import urllib2
 import sys
 
 TARGET = 'http://crypto-class.appspot.com/po?er='
+ciphertext = 'f20bdba6ff29eed7b046d1df9fb7000058b1ffb4210a580f748b4ac714c001bd4a61044426fb515dad3f21f18aa577c0bdf302936266926ff37dbf7035d5eeb4'
 #--------------------------------------------------------------
 # padding oracle
 #--------------------------------------------------------------
@@ -35,6 +36,12 @@ class PaddingOracle(object):
                 return True # good padding
             return False # bad padding
 
-if __name__ == "__main__":
+def decrypt():
+    plaintext = ''
     po = PaddingOracle()
-    po.query(sys.argv[1])       # Issue HTTP query with the given argument
+    po.query()
+    return plaintext
+
+if __name__ == "__main__":
+    print decrypt()
+
