@@ -17,10 +17,11 @@ Now to business. Suppose an attacker wishes to steal secret information from our
 '''
 
 import urllib2
+import string
 
 TARGET = 'http://crypto-class.appspot.com/po?er='
 ciphertext = 'f20bdba6ff29eed7b046d1df9fb7000058b1ffb4210a580f748b4ac714c001bd4a61044426fb515dad3f21f18aa577c0bdf302936266926ff37dbf7035d5eeb4'.decode('hex')
-FAST_CHARLIST = ' etaonisrhldcupfmwybgvkqxjzETAONISRHLDCUPFMWYBGVKQXJZ,.!'
+FAST_CHARLIST = ' etaonisrhldcupfmwybgvkqxjzETAONISRHLDCUPFMWYBGVKQXJZ,.!' #string.printable
 #--------------------------------------------------------------
 # padding oracle
 #--------------------------------------------------------------
@@ -41,33 +42,46 @@ def strxor(a, b):     # xor two strings of different lengths
     else:
         return "".join([chr(ord(x) ^ ord(y)) for (x, y) in zip(a, b[:len(a)])])
 
-def decryptblock(prevblock,currentblock):
+def decryptblock(prevblock,currentblock,pretext,charlist):
     pt0 = ['?' for i in range(16)]
+
     for i in range(15,-1,-1):
         pad_len=16-i
-        for guess in FAST_CHARLIST:
-            fullguess = pt0
+        counter = 0
+        fullguess = pt0
+        for guess in charlist:
+            flag = False
             fullguess[i] = guess
-            #print fullguess
+            print counter,''.join(fullguess)
+            counter +=1
             new_prev_block = strxor(strxor(prevblock,fullguess),chr(pad_len)*16)
-            new_ct = new_prev_block+currentblock
+            new_ct = ''.join(pretext)+new_prev_block+currentblock
             if query(new_ct.encode('hex')):
                 print 'found it: %s' % guess
                 pt0[i] = guess
+                flag = True
                 break
-    return pt0;
+        if flag == False:
+            fullcharlist = set([chr(i) for i in range(256)])
+    return ''.join(pt0);
 
 def decrypt():
     blocks = []
     plaintext = []
-    for i in range(16,len(ciphertext),16):
+    for i in range(0,len(ciphertext),16):
         blocks.append(ciphertext[i:i+16])
     n = len(blocks)
-    for i in range(n-1):
-        s=decryptblock(blocks[i],blocks[i+1])
-        print i,blocks[i],s
+    # first block
+    s=decryptblock(blocks[0],blocks[1],'',FAST_CHARLIST)
+    plaintext.append(s)
+    # middle blocks
+    for i in range(1,n-2):
+        s=decryptblock(blocks[i],blocks[i+1],blocks[0:i],FAST_CHARLIST)
         plaintext.append(s)
-    print plaintext
+    # last block with padding
+    s=decryptblock(blocks[n-2],blocks[n-1],blocks[:n-2],[chr(i) for i in range(256)])
+    plaintext.append(s)
+    print ''.join(plaintext)
 
 if __name__ == "__main__":
     print decrypt()
